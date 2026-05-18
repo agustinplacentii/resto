@@ -165,6 +165,32 @@ public class ProductService(RestaurantDbContext db) : IProductService
         return ToDto(product);
     }
 
+    public async Task<ProductDto?> AddStockAsync(int id, StockAdjustmentRequest request)
+    {
+        var product = await db.Products
+            .Include(item => item.ProductGroup)
+            .FirstOrDefaultAsync(item => item.Id == id);
+
+        if (product is null)
+        {
+            return null;
+        }
+
+        if (request.Quantity <= 0)
+        {
+            throw new InvalidOperationException("La cantidad a agregar debe ser mayor a cero.");
+        }
+
+        product.Stock += request.Quantity;
+        AddLog(
+            "stock-added",
+            $"Se agregaron {request.Quantity} {product.Measure} de {product.Name}. Stock actual: {product.Stock}.");
+
+        await db.SaveChangesAsync();
+
+        return ToDto(product);
+    }
+
     private void AddLog(string type, string description)
     {
         db.ActivityLogs.Add(new ActivityLog
@@ -177,7 +203,7 @@ public class ProductService(RestaurantDbContext db) : IProductService
 
     private static string ReasonLabel(string reason)
     {
-        return reason == "courtesy" ? "cortesia de la casa" : "producto dañado";
+        return reason == "courtesy" ? "cortesia de la casa" : "producto danado";
     }
 
     private static void ApplyRequest(Product product, ProductRequest request)

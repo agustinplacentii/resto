@@ -10,7 +10,7 @@ public class InvoiceService : IInvoiceService
     {
         var lines = new List<string>
         {
-            "Restaurant local",
+            "Saoko",
             $"Factura pedido #{order.Id}",
             $"Fecha: {order.CreatedAt.LocalDateTime:dd/MM/yyyy HH:mm}",
             $"Mesa/cliente: {(string.IsNullOrWhiteSpace(order.TableName) ? "Sin mesa" : order.TableName)}",
