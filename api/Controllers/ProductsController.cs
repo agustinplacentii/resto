@@ -61,4 +61,18 @@ public class ProductsController(IProductService products) : ControllerBase
         var product = await products.UpdateProductAsync(id, request);
         return product is null ? NotFound() : Ok(product);
     }
+
+    [HttpPost("{id:int}/stock-discounts")]
+    public async Task<ActionResult<ProductDto>> DiscountStock(int id, StockAdjustmentRequest request)
+    {
+        try
+        {
+            var product = await products.DiscountStockAsync(id, request);
+            return product is null ? NotFound() : Ok(product);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 }

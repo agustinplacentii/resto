@@ -23,3 +23,5 @@ public record ProductRequest(
     int Stock,
     bool IsActive = true,
     int? ProductGroupId = null);
+
+public record StockAdjustmentRequest(int Quantity, string Reason);

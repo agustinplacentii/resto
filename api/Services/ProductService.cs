@@ -111,6 +111,39 @@ public class ProductService(RestaurantDbContext db) : IProductService
         return ToDto(product);
     }
 
+    public async Task<ProductDto?> DiscountStockAsync(int id, StockAdjustmentRequest request)
+    {
+        var product = await db.Products
+            .Include(item => item.ProductGroup)
+            .FirstOrDefaultAsync(item => item.Id == id);
+
+        if (product is null)
+        {
+            return null;
+        }
+
+        if (request.Quantity <= 0)
+        {
+            throw new InvalidOperationException("La cantidad a descontar debe ser mayor a cero.");
+        }
+
+        var reason = request.Reason.Trim();
+        if (reason is not "courtesy" and not "damaged")
+        {
+            throw new InvalidOperationException("Selecciona un motivo valido para descontar stock.");
+        }
+
+        if (product.Stock < request.Quantity)
+        {
+            throw new InvalidOperationException($"Stock insuficiente para {product.Name}.");
+        }
+
+        product.Stock -= request.Quantity;
+        await db.SaveChangesAsync();
+
+        return ToDto(product);
+    }
+
     private static void ApplyRequest(Product product, ProductRequest request)
     {
         product.Name = request.Name.Trim();
