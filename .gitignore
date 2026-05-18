@@ -1,0 +1,19 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+
+# Node / React
+node_modules/
+dist/
+
+# Local generated files
+*.log
+*.pdf
+.env
+.env.local
+
+# IDE
+.vs/
+.vscode/
