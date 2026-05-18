@@ -9,6 +9,7 @@ public class RestaurantDbContext(DbContextOptions<RestaurantDbContext> options) 
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+    public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -44,6 +45,13 @@ public class RestaurantDbContext(DbContextOptions<RestaurantDbContext> options) 
             entity.Property(item => item.ProductName).HasMaxLength(120).IsRequired();
             entity.Property(item => item.Measure).HasMaxLength(40).IsRequired();
             entity.Property(item => item.UnitPrice).HasColumnType("numeric(12,2)");
+        });
+
+        modelBuilder.Entity<ActivityLog>(entity =>
+        {
+            entity.Property(log => log.Type).HasMaxLength(40).IsRequired();
+            entity.Property(log => log.Description).HasMaxLength(500).IsRequired();
+            entity.HasIndex(log => log.CreatedAt);
         });
     }
 }

@@ -90,6 +90,11 @@ public class ProductService(RestaurantDbContext db) : IProductService
         ApplyRequest(product, request);
 
         db.Products.Add(product);
+        if (product.Stock > 0)
+        {
+            AddLog("stock-added", $"Se agregaron {product.Stock} {product.Measure} de {product.Name} al crear el producto.");
+        }
+
         await db.SaveChangesAsync();
         await db.Entry(product).Reference(item => item.ProductGroup).LoadAsync();
 
@@ -104,7 +109,19 @@ public class ProductService(RestaurantDbContext db) : IProductService
             return null;
         }
 
+        var previousStock = product.Stock;
         ApplyRequest(product, request);
+
+        var stockDifference = product.Stock - previousStock;
+        if (stockDifference > 0)
+        {
+            AddLog("stock-added", $"Se agregaron {stockDifference} {product.Measure} de {product.Name}. Stock actual: {product.Stock}.");
+        }
+        else if (stockDifference < 0)
+        {
+            AddLog("stock-removed", $"Se quitaron {Math.Abs(stockDifference)} {product.Measure} de {product.Name}. Stock actual: {product.Stock}.");
+        }
+
         await db.SaveChangesAsync();
         await db.Entry(product).Reference(item => item.ProductGroup).LoadAsync();
 
@@ -139,9 +156,28 @@ public class ProductService(RestaurantDbContext db) : IProductService
         }
 
         product.Stock -= request.Quantity;
+        AddLog(
+            "stock-removed",
+            $"Se quitaron {request.Quantity} {product.Measure} de {product.Name} por {ReasonLabel(reason)}. Stock actual: {product.Stock}.");
+
         await db.SaveChangesAsync();
 
         return ToDto(product);
+    }
+
+    private void AddLog(string type, string description)
+    {
+        db.ActivityLogs.Add(new ActivityLog
+        {
+            Type = type,
+            Description = description,
+            CreatedAt = DateTimeOffset.UtcNow
+        });
+    }
+
+    private static string ReasonLabel(string reason)
+    {
+        return reason == "courtesy" ? "cortesia de la casa" : "producto dañado";
     }
 
     private static void ApplyRequest(Product product, ProductRequest request)

@@ -88,6 +88,14 @@ public class OrderService(RestaurantDbContext db) : IOrderService
         db.Orders.Add(order);
         await db.SaveChangesAsync();
 
+        db.ActivityLogs.Add(new ActivityLog
+        {
+            Type = "invoice-created",
+            Description = $"Se creo la factura del pedido #{order.Id} por ${order.Total:0.##}.",
+            CreatedAt = order.CreatedAt
+        });
+        await db.SaveChangesAsync();
+
         return ToDto(order);
     }
 
