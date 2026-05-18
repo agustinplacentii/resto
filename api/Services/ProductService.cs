@@ -9,14 +9,49 @@ public class ProductService(RestaurantDbContext db) : IProductService
 {
     public async Task<IReadOnlyList<ProductGroupDto>> GetGroupsAsync()
     {
-        return await db.ProductGroups
+        var groups = await db.ProductGroups
             .OrderBy(group => group.Name)
+            .ToListAsync();
+
+        return groups
             .Select(group => new ProductGroupDto(
                 group.Id,
                 group.Name,
                 group.Description,
-                group.Products.Count(product => product.IsActive)))
-            .ToListAsync();
+                db.Products.Count(product => product.ProductGroupId == group.Id && product.IsActive)))
+            .ToList();
+    }
+
+    public async Task<ProductGroupDto> CreateGroupAsync(ProductGroupRequest request)
+    {
+        var name = request.Name.Trim();
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new InvalidOperationException("El nombre de la categoria es obligatorio.");
+        }
+
+        var existing = await db.ProductGroups.FirstOrDefaultAsync(group => group.Name == name);
+        if (existing is not null)
+        {
+            return new ProductGroupDto(
+                existing.Id,
+                existing.Name,
+                existing.Description,
+                await db.Products.CountAsync(product => product.ProductGroupId == existing.Id && product.IsActive));
+        }
+
+        var group = new ProductGroup
+        {
+            Name = name,
+            Description = string.IsNullOrWhiteSpace(request.Description)
+                ? $"Productos de {name}."
+                : request.Description.Trim()
+        };
+
+        db.ProductGroups.Add(group);
+        await db.SaveChangesAsync();
+
+        return new ProductGroupDto(group.Id, group.Name, group.Description, 0);
     }
 
     public async Task<IReadOnlyList<ProductDto>> GetProductsAsync(int? groupId)
@@ -46,6 +81,11 @@ public class ProductService(RestaurantDbContext db) : IProductService
 
     public async Task<ProductDto> CreateProductAsync(ProductRequest request)
     {
+        if (request.ProductGroupId is null or 0)
+        {
+            throw new InvalidOperationException("Selecciona una categoria para guardar el producto.");
+        }
+
         var product = new Product();
         ApplyRequest(product, request);
 
@@ -79,7 +119,7 @@ public class ProductService(RestaurantDbContext db) : IProductService
         product.Price = request.Price;
         product.Stock = request.Stock;
         product.IsActive = request.IsActive;
-        product.ProductGroupId = request.ProductGroupId;
+        product.ProductGroupId = request.ProductGroupId is 0 ? null : request.ProductGroupId;
     }
 
     public static ProductDto ToDto(Product product)

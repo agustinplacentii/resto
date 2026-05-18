@@ -14,6 +14,7 @@ body {
 
 button,
 input,
+select,
 textarea {
   font: inherit;
 }
@@ -89,7 +90,7 @@ h3 {
   align-items: start;
   display: grid;
   gap: 18px;
-  grid-template-columns: minmax(0, 1fr) minmax(380px, 0.8fr);
+  grid-template-columns: 340px minmax(0, 1fr) minmax(380px, 0.8fr);
   margin: 18px auto 0;
   max-width: 1500px;
 }
@@ -196,6 +197,7 @@ label {
 }
 
 input,
+select,
 textarea {
   background: #ffffff;
   border: 1px solid #cfd8c2;
@@ -212,6 +214,7 @@ textarea {
 }
 
 .cartItems,
+.categoryForm,
 .orders,
 .inventory {
   display: grid;
@@ -280,7 +283,7 @@ textarea {
   align-items: center;
   display: grid;
   gap: 8px;
-  grid-template-columns: minmax(150px, 1.4fr) minmax(110px, 0.8fr) 110px 90px 92px;
+  grid-template-columns: minmax(150px, 1.4fr) minmax(130px, 0.9fr) minmax(110px, 0.8fr) 110px 90px 92px;
 }
 
 .newProduct {

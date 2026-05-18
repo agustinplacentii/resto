@@ -11,6 +11,7 @@ Aplicacion local para tomar pedidos de restaurante, controlar stock y cambiar pr
 ## Base de datos
 
 La app usa tu PostgreSQL local con la base `restaurant_local`.
+La base arranca vacia: primero se crean categorias propias y despues productos asociados.
 
 ## Backend
 
@@ -25,6 +26,7 @@ API: http://localhost:5088
 ## Endpoints principales
 
 - `GET /api/products/groups`: categorias/cards principales, por ejemplo Pizzas, Cervezas y Tragos.
+- `POST /api/products/groups`: crear una categoria.
 - `GET /api/products`: todos los productos.
 - `GET /api/products?groupId=1`: productos relacionados a una categoria.
 - `GET /api/products/{id}`: detalle de un producto.

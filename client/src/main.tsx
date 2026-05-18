@@ -76,9 +76,9 @@ function App() {
   const [tableName, setTableName] = useState('');
   const [notes, setNotes] = useState('');
   const [message, setMessage] = useState('');
+  const [groupDraft, setGroupDraft] = useState({ name: '', description: '' });
   const [draft, setDraft] = useState({
     name: '',
-    category: 'Pizzas',
     measure: 'Unidad',
     price: 0,
     stock: 0,
@@ -197,24 +197,51 @@ function App() {
 
   async function addProduct() {
     if (!draft.name.trim() || draft.productGroupId === 0) {
+      setMessage('Crea o selecciona una categoria antes de guardar el producto.');
       return;
     }
+
+    const group = groups.find((item) => item.id === draft.productGroupId);
 
     await fetch(`${API_URL}/products`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...draft, isActive: true })
+      body: JSON.stringify({ ...draft, category: group?.name ?? '', isActive: true })
     });
 
     setDraft({
       name: '',
-      category: selectedGroup?.name ?? 'Pizzas',
       measure: 'Unidad',
       price: 0,
       stock: 0,
       productGroupId: selectedGroup?.id ?? groups[0]?.id ?? 0
     });
     await loadData(selectedGroup?.id);
+  }
+
+  async function addGroup() {
+    if (!groupDraft.name.trim()) {
+      setMessage('Escribi el nombre de la categoria.');
+      return;
+    }
+
+    const response = await fetch(`${API_URL}/products/groups`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(groupDraft)
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      setMessage(error.message ?? 'No se pudo crear la categoria.');
+      return;
+    }
+
+    const group: ProductGroup = await response.json();
+    setGroupDraft({ name: '', description: '' });
+    setDraft((current) => ({ ...current, productGroupId: group.id }));
+    setMessage(`Categoria ${group.name} creada.`);
+    await loadData(group.id);
   }
 
   async function updateStatus(order: Order, status: Order['status']) {
@@ -255,6 +282,9 @@ function App() {
                 Volver a categorias
               </button>
               <div className="productGrid">
+                {products.filter((product) => product.isActive).length === 0 && (
+                  <p className="muted">Esta categoria todavia no tiene productos.</p>
+                )}
                 {products.filter((product) => product.isActive).map((product) => (
                   <button className="productButton" key={product.id} onClick={() => openProduct(product.id)}>
                     <strong>{product.name}</strong>
@@ -267,6 +297,9 @@ function App() {
             </>
           ) : (
             <div className="groupGrid">
+              {groups.length === 0 && (
+                <p className="muted">Crea categorias abajo para empezar a cargar productos.</p>
+              )}
               {groups.map((group) => (
                 <button className="groupCard" key={group.id} onClick={() => openGroup(group)}>
                   <strong>{group.name}</strong>
@@ -346,6 +379,29 @@ function App() {
       </section>
 
       <section className="lowerGrid">
+        <div className="panel setupPanel">
+          <div className="sectionTitle">
+            <Plus size={20} />
+            <h2>Categorias</h2>
+          </div>
+          <div className="categoryForm">
+            <input
+              value={groupDraft.name}
+              onChange={(event) => setGroupDraft({ ...groupDraft, name: event.target.value })}
+              placeholder="Nueva categoria, ej. Cervezas"
+            />
+            <input
+              value={groupDraft.description}
+              onChange={(event) => setGroupDraft({ ...groupDraft, description: event.target.value })}
+              placeholder="Descripcion opcional"
+            />
+            <button className="iconText" onClick={addGroup}>
+              <Plus size={18} />
+              Crear categoria
+            </button>
+          </div>
+        </div>
+
         <div className="panel">
           <div className="sectionTitle">
             <Package size={20} />
@@ -355,6 +411,19 @@ function App() {
             {allProducts.map((product) => (
               <div className="inventoryRow" key={product.id}>
                 <input value={product.name} onChange={(event) => saveProduct({ ...product, name: event.target.value })} />
+                <select
+                  value={product.productGroupId ?? 0}
+                  onChange={(event) => {
+                    const groupId = Number(event.target.value);
+                    const group = groups.find((item) => item.id === groupId);
+                    saveProduct({ ...product, productGroupId: groupId, category: group?.name ?? product.category });
+                  }}
+                >
+                  <option value={0}>Sin categoria</option>
+                  {groups.map((group) => (
+                    <option key={group.id} value={group.id}>{group.name}</option>
+                  ))}
+                </select>
                 <input value={product.measure} onChange={(event) => saveProduct({ ...product, measure: event.target.value })} />
                 <input type="number" value={product.price} onChange={(event) => saveProduct({ ...product, price: Number(event.target.value) })} />
                 <input type="number" value={product.stock} onChange={(event) => saveProduct({ ...product, stock: Number(event.target.value) })} />
@@ -366,6 +435,15 @@ function App() {
             ))}
             <div className="inventoryRow newProduct">
               <input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} placeholder="Nuevo producto" />
+              <select
+                value={draft.productGroupId}
+                onChange={(event) => setDraft({ ...draft, productGroupId: Number(event.target.value) })}
+              >
+                <option value={0}>Categoria</option>
+                {groups.map((group) => (
+                  <option key={group.id} value={group.id}>{group.name}</option>
+                ))}
+              </select>
               <input value={draft.measure} onChange={(event) => setDraft({ ...draft, measure: event.target.value })} placeholder="Medida" />
               <input type="number" value={draft.price} onChange={(event) => setDraft({ ...draft, price: Number(event.target.value) })} placeholder="Precio" />
               <input type="number" value={draft.stock} onChange={(event) => setDraft({ ...draft, stock: Number(event.target.value) })} placeholder="Stock" />

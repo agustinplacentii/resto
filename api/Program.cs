@@ -34,7 +34,6 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<RestaurantDbContext>();
     db.Database.EnsureCreated();
     SchemaInitializer.EnsureUpdated(db);
-    SeedData.EnsureSeeded(db);
 }
 
 app.Run();

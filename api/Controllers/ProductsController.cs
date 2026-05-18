@@ -14,6 +14,20 @@ public class ProductsController(IProductService products) : ControllerBase
         return Ok(await products.GetGroupsAsync());
     }
 
+    [HttpPost("groups")]
+    public async Task<ActionResult<ProductGroupDto>> CreateGroup(ProductGroupRequest request)
+    {
+        try
+        {
+            var group = await products.CreateGroupAsync(request);
+            return Created($"/api/products/groups/{group.Id}", group);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<ProductDto>>> GetProducts([FromQuery] int? groupId)
     {
@@ -30,8 +44,15 @@ public class ProductsController(IProductService products) : ControllerBase
     [HttpPost]
     public async Task<ActionResult<ProductDto>> CreateProduct(ProductRequest request)
     {
-        var product = await products.CreateProductAsync(request);
-        return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
+        try
+        {
+            var product = await products.CreateProductAsync(request);
+            return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpPut("{id:int}")]

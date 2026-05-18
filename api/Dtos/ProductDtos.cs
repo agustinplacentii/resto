@@ -2,6 +2,8 @@ namespace Restaurant.Api.Dtos;
 
 public record ProductGroupDto(int Id, string Name, string Description, int ProductCount);
 
+public record ProductGroupRequest(string Name, string Description);
+
 public record ProductDto(
     int Id,
     string Name,
