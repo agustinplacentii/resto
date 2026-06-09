@@ -23,6 +23,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
+builder.Services.AddScoped<ICashRegisterService, CashRegisterService>();
 
 var app = builder.Build();
 

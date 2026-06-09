@@ -191,6 +191,26 @@ public class ProductService(RestaurantDbContext db) : IProductService
         return ToDto(product);
     }
 
+    public async Task<bool?> DeleteProductAsync(int id)
+    {
+        var product = await db.Products.FindAsync(id);
+        if (product is null)
+        {
+            return null;
+        }
+
+        if (product.Stock > 0)
+        {
+            throw new InvalidOperationException("Solo se puede eliminar un producto sin stock.");
+        }
+
+        db.Products.Remove(product);
+        AddLog("product-deleted", $"Se elimino el producto {product.Name}.");
+        await db.SaveChangesAsync();
+
+        return true;
+    }
+
     private void AddLog(string type, string description)
     {
         db.ActivityLogs.Add(new ActivityLog

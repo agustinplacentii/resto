@@ -13,7 +13,7 @@ public class InvoiceService : IInvoiceService
             "Saoko",
             $"Factura pedido #{order.Id}",
             $"Fecha: {order.CreatedAt.LocalDateTime:dd/MM/yyyy HH:mm}",
-            $"Mesa/cliente: {(string.IsNullOrWhiteSpace(order.TableName) ? "Sin mesa" : order.TableName)}",
+            $"Mesa/cliente: {OrderDestination(order)}",
             ""
         };
 
@@ -37,6 +37,23 @@ public class InvoiceService : IInvoiceService
     private static string Money(decimal value)
     {
         return value.ToString("C0", CultureInfo.CreateSpecificCulture("es-AR"));
+    }
+
+    private static string OrderDestination(Order order)
+    {
+        if (!string.IsNullOrWhiteSpace(order.CustomerName))
+        {
+            return $"Nombre: {order.CustomerName}";
+        }
+
+        return string.IsNullOrWhiteSpace(order.TableName) ? "Sin mesa" : $"Mesa: {TableLabel(order.TableName)}";
+    }
+
+    private static string TableLabel(string tableName)
+    {
+        return tableName.Trim().StartsWith("Mesa ", StringComparison.OrdinalIgnoreCase)
+            ? tableName.Trim()["Mesa ".Length..].Trim()
+            : tableName.Trim();
     }
 
     private static class SimplePdf

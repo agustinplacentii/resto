@@ -15,6 +15,19 @@ public class OrdersController(IOrderService orders, IInvoiceService invoices) : 
         return Ok(await orders.GetOrdersAsync());
     }
 
+    [HttpGet("open-account")]
+    public async Task<ActionResult<AccountSearchDto>> SearchOpenAccount([FromQuery] string searchType, [FromQuery] string searchValue)
+    {
+        try
+        {
+            return Ok(await orders.SearchOpenAccountAsync(searchType, searchValue));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpGet("{id:int}")]
     public async Task<ActionResult<OrderDto>> GetOrder(int id)
     {
@@ -39,8 +52,15 @@ public class OrdersController(IOrderService orders, IInvoiceService invoices) : 
     [HttpPatch("{id:int}/status")]
     public async Task<ActionResult<OrderDto>> UpdateStatus(int id, UpdateOrderStatusRequest request)
     {
-        var order = await orders.UpdateStatusAsync(id, request.Status);
-        return order is null ? NotFound() : Ok(order);
+        try
+        {
+            var order = await orders.UpdateStatusAsync(id, request.Status);
+            return order is null ? NotFound() : Ok(order);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpGet("{id:int}/invoice.pdf")]

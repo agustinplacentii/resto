@@ -6,6 +6,7 @@ namespace Restaurant.Api.Services;
 public interface IOrderService
 {
     Task<IReadOnlyList<OrderDto>> GetOrdersAsync();
+    Task<AccountSearchDto> SearchOpenAccountAsync(string searchType, string searchValue);
     Task<OrderDto?> GetOrderAsync(int id);
     Task<Order?> GetOrderEntityAsync(int id);
     Task<OrderDto> CreateOrderAsync(CreateOrderRequest request);

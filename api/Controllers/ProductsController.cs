@@ -89,4 +89,18 @@ public class ProductsController(IProductService products) : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
     }
+
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> DeleteProduct(int id)
+    {
+        try
+        {
+            var deleted = await products.DeleteProductAsync(id);
+            return deleted is null ? NotFound() : NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 }

@@ -18,6 +18,37 @@ public class OrderService(RestaurantDbContext db) : IOrderService
         return orders.Select(ToDto).ToList();
     }
 
+    public async Task<AccountSearchDto> SearchOpenAccountAsync(string searchType, string searchValue)
+    {
+        var normalizedType = searchType.Trim().ToLowerInvariant();
+        var value = searchValue.Trim();
+
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            throw new InvalidOperationException("Escribi una mesa o cliente para buscar la cuenta.");
+        }
+
+        if (normalizedType is not "table" and not "customer")
+        {
+            throw new InvalidOperationException("Selecciona si queres buscar por mesa o por cliente.");
+        }
+
+        var lowered = value.ToLower();
+        var query = db.Orders
+            .Include(order => order.Items.OrderBy(item => item.Id))
+            .Where(order => order.Status == OrderStatus.Open);
+
+        query = normalizedType == "table"
+            ? query.Where(order => order.TableName.ToLower() == lowered)
+            : query.Where(order => order.CustomerName.ToLower().Contains(lowered));
+
+        var orders = await query
+            .OrderBy(order => order.CreatedAt)
+            .ToListAsync();
+
+        return new AccountSearchDto(normalizedType, value, orders.Sum(order => order.Total), orders.Select(ToDto).ToList());
+    }
+
     public async Task<OrderDto?> GetOrderAsync(int id)
     {
         var order = await GetOrderEntityAsync(id);
@@ -63,9 +94,11 @@ public class OrderService(RestaurantDbContext db) : IOrderService
 
         var order = new Order
         {
-            TableName = request.TableName.Trim(),
-            Notes = request.Notes.Trim(),
-            Status = OrderStatus.Open,
+            TableName = (request.TableName ?? string.Empty).Trim(),
+            CustomerName = (request.CustomerName ?? string.Empty).Trim(),
+            Notes = (request.Notes ?? string.Empty).Trim(),
+            Status = request.PayNow ? OrderStatus.Paid : OrderStatus.Open,
+            PaidAt = request.PayNow ? DateTimeOffset.UtcNow : null,
             CreatedAt = DateTimeOffset.UtcNow
         };
 
@@ -107,7 +140,26 @@ public class OrderService(RestaurantDbContext db) : IOrderService
             return null;
         }
 
+        if (order.CashRegisterId is not null && status != OrderStatus.Paid)
+        {
+            throw new InvalidOperationException("El pedido ya fue incluido en una caja cerrada.");
+        }
+
+        if (order.Status == OrderStatus.Paid && status == OrderStatus.Open)
+        {
+            throw new InvalidOperationException("Un pedido pagado solo se puede mantener pagado o cancelar.");
+        }
+
+        if (order.Status == OrderStatus.Cancelled && status == OrderStatus.Open)
+        {
+            throw new InvalidOperationException("Un pedido cancelado solo se puede volver a marcar como pagado.");
+        }
+
         order.Status = status;
+        order.PaidAt = status == OrderStatus.Paid
+            ? order.PaidAt ?? DateTimeOffset.UtcNow
+            : null;
+
         await db.SaveChangesAsync();
         return ToDto(order);
     }
@@ -117,10 +169,12 @@ public class OrderService(RestaurantDbContext db) : IOrderService
         return new OrderDto(
             order.Id,
             order.TableName,
+            order.CustomerName,
             order.Notes,
             order.Total,
             order.Status,
             order.CreatedAt,
+            order.PaidAt,
             order.Items.Select(item => new OrderItemDto(
                 item.Id,
                 item.ProductId,

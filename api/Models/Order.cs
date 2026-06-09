@@ -4,10 +4,14 @@ public class Order
 {
     public int Id { get; set; }
     public string TableName { get; set; } = string.Empty;
+    public string CustomerName { get; set; } = string.Empty;
     public string Notes { get; set; } = string.Empty;
     public decimal Total { get; set; }
     public OrderStatus Status { get; set; } = OrderStatus.Open;
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset? PaidAt { get; set; }
+    public int? CashRegisterId { get; set; }
+    public CashRegister? CashRegister { get; set; }
     public List<OrderItem> Items { get; set; } = [];
 }
 
@@ -17,4 +21,3 @@ public enum OrderStatus
     Paid,
     Cancelled
 }
-

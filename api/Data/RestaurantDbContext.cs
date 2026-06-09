@@ -10,6 +10,7 @@ public class RestaurantDbContext(DbContextOptions<RestaurantDbContext> options) 
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
+    public DbSet<CashRegister> CashRegisters => Set<CashRegister>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -35,9 +36,15 @@ public class RestaurantDbContext(DbContextOptions<RestaurantDbContext> options) 
         modelBuilder.Entity<Order>(entity =>
         {
             entity.Property(order => order.TableName).HasMaxLength(80);
+            entity.Property(order => order.CustomerName).HasMaxLength(120);
             entity.Property(order => order.Notes).HasMaxLength(500);
             entity.Property(order => order.Total).HasColumnType("numeric(12,2)");
             entity.Property(order => order.Status).HasConversion<string>().HasMaxLength(20);
+            entity.HasIndex(order => order.PaidAt);
+            entity.HasOne(order => order.CashRegister)
+                .WithMany(cashRegister => cashRegister.Orders)
+                .HasForeignKey(order => order.CashRegisterId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<OrderItem>(entity =>
@@ -52,6 +59,13 @@ public class RestaurantDbContext(DbContextOptions<RestaurantDbContext> options) 
             entity.Property(log => log.Type).HasMaxLength(40).IsRequired();
             entity.Property(log => log.Description).HasMaxLength(500).IsRequired();
             entity.HasIndex(log => log.CreatedAt);
+        });
+
+        modelBuilder.Entity<CashRegister>(entity =>
+        {
+            entity.Property(cashRegister => cashRegister.Total).HasColumnType("numeric(12,2)");
+            entity.HasIndex(cashRegister => cashRegister.OpenedAt);
+            entity.HasIndex(cashRegister => cashRegister.ClosedAt);
         });
     }
 }
