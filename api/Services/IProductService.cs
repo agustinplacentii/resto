@@ -14,4 +14,7 @@ public interface IProductService
     Task<ProductDto?> AddStockAsync(int id, StockAdjustmentRequest request);
     Task<ProductDto?> DiscountStockAsync(int id, StockAdjustmentRequest request);
     Task<bool?> DeleteProductAsync(int id);
+ /*    Task<IReadOnlyList<RawMaterialDto>> GetRawMaterialsAsync();
+    Task<RawMaterialDto> CreateRawMaterialAsync(RawMaterialRequest request);
+    Task<RawMaterialDto?> UpdateRawMaterialAsync(int id, RawMaterialRequest request); */
 }

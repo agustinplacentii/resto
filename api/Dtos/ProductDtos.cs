@@ -4,6 +4,10 @@ public record ProductGroupDto(int Id, string Name, string Description, int Produ
 
 public record ProductGroupRequest(string Name, string Description);
 
+public record ProductIngredientDto(int RawMaterialId, string RawMaterialName, string Unit, decimal Quantity);
+
+public record ProductIngredientRequest(int RawMaterialId, decimal Quantity);
+
 public record ProductDto(
     int Id,
     string Name,
@@ -13,7 +17,8 @@ public record ProductDto(
     int Stock,
     bool IsActive,
     int? ProductGroupId,
-    string? ProductGroupName);
+    string? ProductGroupName
+);
 
 public record ProductRequest(
     string Name,
@@ -22,6 +27,11 @@ public record ProductRequest(
     decimal Price,
     int Stock,
     bool IsActive = true,
-    int? ProductGroupId = null);
+    int? ProductGroupId = null
+);
 
 public record StockAdjustmentRequest(int Quantity, string Reason);
+
+public record RawMaterialDto(int Id, string Name, string Unit, decimal Quantity);
+
+public record RawMaterialRequest(string Name, string Unit, decimal Quantity);
