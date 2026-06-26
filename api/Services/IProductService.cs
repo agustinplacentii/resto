@@ -6,6 +6,7 @@ public interface IProductService
 {
     Task<IReadOnlyList<ProductGroupDto>> GetGroupsAsync();
     Task<ProductGroupDto> CreateGroupAsync(ProductGroupRequest request);
+    Task<ProductGroupDto?> UpdateGroupAsync(int id, ProductGroupRequest request);
     Task<IReadOnlyList<ProductDto>> GetProductsAsync(int? groupId);
     Task<ProductDto?> GetProductAsync(int id);
     Task<ProductDto> CreateProductAsync(ProductRequest request);

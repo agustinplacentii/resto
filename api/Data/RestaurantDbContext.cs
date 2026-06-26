@@ -5,6 +5,7 @@ namespace Restaurant.Api.Data;
 
 public class RestaurantDbContext(DbContextOptions<RestaurantDbContext> options) : DbContext(options)
 {
+    public DbSet<User> Users => Set<User>();
     public DbSet<ProductGroup> ProductGroups => Set<ProductGroup>();
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Order> Orders => Set<Order>();
@@ -14,6 +15,14 @@ public class RestaurantDbContext(DbContextOptions<RestaurantDbContext> options) 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.Property(user => user.Username).HasMaxLength(80).IsRequired();
+            entity.Property(user => user.PasswordHash).HasMaxLength(256).IsRequired();
+            entity.Property(user => user.PasswordSalt).HasMaxLength(128).IsRequired();
+            entity.HasIndex(user => user.Username).IsUnique();
+        });
+
         modelBuilder.Entity<ProductGroup>(entity =>
         {
             entity.Property(group => group.Name).HasMaxLength(80).IsRequired();

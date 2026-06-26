@@ -28,6 +28,20 @@ public class ProductsController(IProductService products) : ControllerBase
         }
     }
 
+    [HttpPut("groups/{id:int}")]
+    public async Task<ActionResult<ProductGroupDto>> UpdateGroup(int id, ProductGroupRequest request)
+    {
+        try
+        {
+            var group = await products.UpdateGroupAsync(id, request);
+            return group is null ? NotFound() : Ok(group);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<ProductDto>>> GetProducts([FromQuery] int? groupId)
     {

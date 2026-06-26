@@ -24,6 +24,7 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 builder.Services.AddScoped<ICashRegisterService, CashRegisterService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
 
@@ -34,7 +35,9 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<RestaurantDbContext>();
     db.Database.EnsureCreated();
-    SchemaInitializer.EnsureUpdated(db);
+    var initialUsername = builder.Configuration["Auth:InitialUsername"] ?? "admin";
+    var initialPassword = builder.Configuration["Auth:InitialPassword"] ?? "admin";
+    SchemaInitializer.EnsureUpdated(db, initialUsername, initialPassword);
 }
 
 app.Run();

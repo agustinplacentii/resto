@@ -54,6 +54,38 @@ public class ProductService(RestaurantDbContext db) : IProductService
         return new ProductGroupDto(group.Id, group.Name, group.Description, 0);
     }
 
+    public async Task<ProductGroupDto?> UpdateGroupAsync(int id, ProductGroupRequest request)
+    {
+        var group = await db.ProductGroups.FindAsync(id);
+        if (group is null)
+        {
+            return null;
+        }
+
+        var name = request.Name.Trim();
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new InvalidOperationException("El nombre de la categoria es obligatorio.");
+        }
+
+        var duplicatedName = await db.ProductGroups.AnyAsync(item => item.Id != id && item.Name == name);
+        if (duplicatedName)
+        {
+            throw new InvalidOperationException("Ya existe una categoria con ese nombre.");
+        }
+
+        group.Name = name;
+        group.Description = request.Description.Trim();
+
+        await db.SaveChangesAsync();
+
+        return new ProductGroupDto(
+            group.Id,
+            group.Name,
+            group.Description,
+            await db.Products.CountAsync(product => product.ProductGroupId == group.Id && product.IsActive));
+    }
+
     public async Task<IReadOnlyList<ProductDto>> GetProductsAsync(int? groupId)
     {
         var query = db.Products.Include(product => product.ProductGroup).AsQueryable();
