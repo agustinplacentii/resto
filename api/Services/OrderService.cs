@@ -98,8 +98,8 @@ public class OrderService(RestaurantDbContext db) : IOrderService
             CustomerName = (request.CustomerName ?? string.Empty).Trim(),
             Notes = (request.Notes ?? string.Empty).Trim(),
             Status = request.PayNow ? OrderStatus.Paid : OrderStatus.Open,
-            PaidAt = request.PayNow ? DateTimeOffset.UtcNow : null,
-            CreatedAt = DateTimeOffset.UtcNow
+            PaidAt = request.PayNow ? DateTime.UtcNow : null,
+            CreatedAt = DateTime.UtcNow
         };
 
         foreach (var item in request.Items)
@@ -157,7 +157,7 @@ public class OrderService(RestaurantDbContext db) : IOrderService
 
         order.Status = status;
         order.PaidAt = status == OrderStatus.Paid
-            ? order.PaidAt ?? DateTimeOffset.UtcNow
+            ? order.PaidAt ?? DateTime.UtcNow
             : null;
 
         await db.SaveChangesAsync();

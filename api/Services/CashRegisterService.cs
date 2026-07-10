@@ -42,8 +42,8 @@ public class CashRegisterService(RestaurantDbContext db) : ICashRegisterService
             throw new InvalidOperationException("Ya hay una caja abierta.");
         }
 
-        var openedAt = request.OpenedAt == default ? DateTimeOffset.UtcNow : request.OpenedAt.ToUniversalTime();
-        if (openedAt > DateTimeOffset.UtcNow.AddMinutes(1))
+        var openedAt = request.OpenedAt == default ? DateTime.UtcNow : request.OpenedAt.ToUniversalTime();
+        if (openedAt > DateTime.UtcNow.AddMinutes(1))
         {
             throw new InvalidOperationException("La apertura de caja no puede ser futura.");
         }
@@ -58,8 +58,8 @@ public class CashRegisterService(RestaurantDbContext db) : ICashRegisterService
         db.ActivityLogs.Add(new ActivityLog
         {
             Type = "cash-opened",
-            Description = $"Se abrio la caja desde {openedAt.LocalDateTime:g}.",
-            CreatedAt = DateTimeOffset.UtcNow
+            Description = $"Se abrio la caja desde {openedAt.ToLocalTime():g}.",
+            CreatedAt = DateTime.UtcNow
         });
         await db.SaveChangesAsync();
 
@@ -78,7 +78,7 @@ public class CashRegisterService(RestaurantDbContext db) : ICashRegisterService
             return null;
         }
 
-        var closedAt = DateTimeOffset.UtcNow;
+        var closedAt = DateTime.UtcNow;
         var paidOrders = await GetPaidOrdersAsync(cashRegister.OpenedAt, closedAt);
         cashRegister.ClosedAt = closedAt;
         cashRegister.Total = paidOrders.Sum(order => order.Total);
@@ -101,13 +101,13 @@ public class CashRegisterService(RestaurantDbContext db) : ICashRegisterService
     private async Task<CashRegisterDto> ToDtoAsync(CashRegister cashRegister)
     {
         var paidOrders = cashRegister.ClosedAt is null
-            ? await GetPaidOrdersAsync(cashRegister.OpenedAt, DateTimeOffset.UtcNow)
+            ? await GetPaidOrdersAsync(cashRegister.OpenedAt, DateTime.UtcNow)
             : await GetClosedPaidOrdersAsync(cashRegister.Id);
 
         return ToDto(cashRegister, paidOrders);
     }
 
-    private async Task<List<Order>> GetPaidOrdersAsync(DateTimeOffset from, DateTimeOffset until)
+    private async Task<List<Order>> GetPaidOrdersAsync(DateTime from, DateTime until)
     {
         return await db.Orders
             .Include(order => order.Items.OrderBy(item => item.Id))

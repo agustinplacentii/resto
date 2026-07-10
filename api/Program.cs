@@ -10,7 +10,8 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 builder.Services.AddDbContext<RestaurantDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+   
+options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddCors(options =>
 {

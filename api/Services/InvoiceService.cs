@@ -12,7 +12,7 @@ public class InvoiceService : IInvoiceService
         {
             "Saoko",
             $"Factura pedido #{order.Id}",
-            $"Fecha: {order.CreatedAt.LocalDateTime:dd/MM/yyyy HH:mm}",
+            $"Fecha: {order.CreatedAt.ToLocalTime():dd/MM/yyyy HH:mm}",
             $"Mesa/cliente: {OrderDestination(order)}",
             ""
         };

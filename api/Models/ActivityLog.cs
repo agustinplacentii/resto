@@ -5,5 +5,5 @@ public class ActivityLog
     public int Id { get; set; }
     public string Type { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
-    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
