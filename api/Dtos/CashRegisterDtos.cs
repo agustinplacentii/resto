@@ -1,11 +1,11 @@
 namespace Restaurant.Api.Dtos;
 
-public record OpenCashRegisterRequest(DateTimeOffset OpenedAt);
+public record OpenCashRegisterRequest(DateTime OpenedAt);
 
 public record CashRegisterDto(
     int Id,
-    DateTimeOffset OpenedAt,
-    DateTimeOffset? ClosedAt,
+    DateTime OpenedAt,
+    DateTime? ClosedAt,
     decimal Total,
     IReadOnlyList<CashRegisterItemSummaryDto> ItemSummaries,
     IReadOnlyList<OrderDto> PaidOrders);

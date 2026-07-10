@@ -249,7 +249,7 @@ public class ProductService(RestaurantDbContext db) : IProductService
         {
             Type = type,
             Description = description,
-            CreatedAt = DateTimeOffset.UtcNow
+            CreatedAt = DateTime.UtcNow
         });
     }
 

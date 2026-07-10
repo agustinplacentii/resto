@@ -21,8 +21,8 @@ public record OrderDto(
     string Notes,
     decimal Total,
     OrderStatus Status,
-    DateTimeOffset CreatedAt,
-    DateTimeOffset? PaidAt,
+    DateTime CreatedAt,
+    DateTime? PaidAt,
     IReadOnlyList<OrderItemDto> Items,
     string InvoiceUrl);
 
